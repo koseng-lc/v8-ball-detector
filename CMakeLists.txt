@@ -29,6 +29,10 @@ add_executable(go
     go.cpp
 )
 
+add_executable(calibration
+    calibration.cpp
+)
+
 target_link_libraries(${PROJECT_NAME}_lib
     ${OpenCV_LIBRARIES}
     Boost::system
@@ -39,4 +43,8 @@ target_link_libraries(go
     ${PROJECT_NAME}_lib
     stuff_lib
     Boost::thread
+)
+
+target_link_libraries(calibration
+   ${OpenCV_LIBRARIES} 
 )

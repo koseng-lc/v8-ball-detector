@@ -22,7 +22,7 @@ int main(int argc, char** argv){
         alfarobi_v8::LBP,
         alfarobi_v8::ClassifierWrapper> bd(&dw, &lbp, &cw);
 
-    cv::VideoCapture vc("../video_test/video9.avi");
+    cv::VideoCapture vc("../video_test/video9.avi");    
 
     cv::Mat input(alfarobi_v8::default_height,
                   alfarobi_v8::default_width, CV_8UC3);    

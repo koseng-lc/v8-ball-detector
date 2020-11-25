@@ -18,10 +18,14 @@ template <typename Search, typename Descriptor, typename Classifier,
             std::size_t width = default_width, std::size_t height = default_height>
 class BallDetector{
 public:
+    static constexpr auto hue_range_{180};
+    static constexpr auto sat_range_{256};
+
     BallDetector(Search* _search, Descriptor* _desc, Classifier* _classifier)
         : search_(_search)
         , desc_(_desc)
-        , classifier_(_classifier){
+        , classifier_(_classifier)
+        , color_table_(hue_range_, sat_range_, CV_8UC1){
 
     }
 
@@ -33,6 +37,7 @@ private:
 
 private:
     enum class ColorFlag{
+        None=0,
         Field=1,
         Ball=2
     };
@@ -41,16 +46,16 @@ private:
     Search* search_;
     Descriptor* desc_;
     Classifier* classifier_;    
-
-    static constexpr auto hue_range_{180};
-    static constexpr auto sat_range_{255};
-    std::array<default_scalar_t, hue_range_*sat_range_> field_lut_;
+    
+    cv::Mat color_table_;
 };
 
 template <typename Search, typename Descriptor, typename Classifier,
             std::size_t width, std::size_t height>
 auto BallDetector<Search, Descriptor, Classifier, width, height>::loadLUT(std::string&& _file_path){
-    
+    cv::FileStorage fs = cv::FileStorage(_file_path, cv::FileStorage::READ);
+    fs["color_table"] >> color_table_;
+    fs.release();
 }
 
 template <typename Search, typename Descriptor, typename Classifier,
@@ -63,8 +68,8 @@ auto BallDetector<Search, Descriptor, Classifier, width, height>::segmentField(c
         int sat = _in_hsv.at<cv::Vec3b>(i)[1];                
         int val = _in_hsv.at<cv::Vec3b>(i)[2];
 
-        if(field_lut_[hue*sat_range_ + sat] == ColorFlag::Field)
-            field.at<uchar>(i) = 255;
+        if(color_table_.at<uchar>(hue*sat_range_ + sat) == ColorFlag::Field)
+            color_table_.at<uchar>(i) = 255;
     }
 
     return field;
