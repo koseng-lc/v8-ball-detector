@@ -237,14 +237,14 @@ auto BallDetector<Search, Descriptor, Classifier, width, height>::execute(const 
 
     auto [max_val, max_point, dt] = search_->search(ball_candidate_contours);
 
-    //-- Threshold
+    //-- threshold
     auto min_white_percentage(.2);
     auto max_white_percentage(.75);
-    auto min_var(1.2); 
-    auto score_limit(10.);
-    //-- Optimal
+    auto min_var(-1.2); 
+    auto score_limit(.75);
+    //-- optimal
     auto opt_score(.0);
-    //--Ball index
+    //-- ball index
     auto idx(-1);
     //-- print
     auto wht_percent_cout(.0);
@@ -254,6 +254,7 @@ auto BallDetector<Search, Descriptor, Classifier, width, height>::execute(const 
 
     if(max_val.size())
         std::cout << "Candidates:\n  [Pos.] [Rad.] [Wht. Percent.] [Var.] [Hist. Score]" << std::endl;
+
     cv::Point ball_pos;
     for(std::size_t i(0); i < max_val.size(); i++){    	
 
@@ -276,7 +277,7 @@ auto BallDetector<Search, Descriptor, Classifier, width, height>::execute(const 
 
         auto white_percentage = (default_scalar_t)cv::countNonZero(roi)/(d1*d2);                        
         
-        //=============== Decision Tree ==================
+        //-- Decision Tree
         if(white_percentage >= min_white_percentage
             && white_percentage <= max_white_percentage){            
             variance = calcVariance(dt, max_point[i]);
@@ -358,7 +359,7 @@ auto BallDetector<Search, Descriptor, Classifier, width, height>::execute(const 
                 }            
             }             
         }
-        //================= End of Decision Tree ===================
+        //-- End of Decision Tree
 
         std::cout << i+1 <<"." << max_point[i]
                          << " ; " << max_val[i]

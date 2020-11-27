@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include <iostream>
+
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
@@ -15,6 +17,7 @@ class DistanceWeightingSearch{
 public:
     using max_val_t = std::vector<double>;
     using max_point_t = std::vector<cv::Point>;
+
 public:
     auto distanceWeighting(const cv::Mat &in){
         cv::Mat weighting(cv::Mat::zeros(in.size(), CV_64FC1));
@@ -51,42 +54,42 @@ public:
         std::vector<std::vector<cv::Point>> contours;
         cv:findContours(in, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
 
-        cv::normalize(dt,dt, 0., 1., cv::NORM_MINMAX); 
-        cv::imshow("[alfarobi_v8][DistanceWeightingSearch] Distance Weighting", dt);
+        // cv::normalize(dt, dt, 0., 1., cv::NORM_MINMAX); 
+        // cv::imshow("[alfarobi_v8][DistanceWeightingSearch] Distance Weighting", dt);
+
         max_val_t max_val;
         max_point_t max_point;
         
         for(std::size_t i(0); i < contours.size(); i++){
             auto area = cv::contourArea(contours[i]);
-            cv::Rect r = cv::boundingRect(contours[i]);        
+            cv::Rect r = cv::boundingRect(contours[i]);
             if(area <= MIN_BALL_AREA) continue;
             if(r.area() < 400){ //-- different treatment
                 cv::Mat interest(dt, r);            
                 cv::Point minp, maxp, ctr;
                 double minv, maxv;
-                cv::minMaxLoc(interest, &minv, &maxv, &minp, &maxp);                       
+                cv::minMaxLoc(interest, &minv, &maxv, &minp, &maxp);    
                 if(maxv <= MIN_BALL_RADIUS) continue;
                 ctr = cv::Point(r.tl().x + maxp.x, r.tl().y + maxp.y);
                 //-- remove visited candidate
                 cv::circle(dt, ctr, maxv, cv::Scalar(0), cv::FILLED);
                 max_point.push_back(ctr);
-                max_val.push_back(maxv);
+                max_val.push_back(maxv);                
             }else {
                 for(auto j(0); j < MAX_CANDIDATE; j++){
                     cv::Mat interest(dt, r);
                     cv::Point minp, maxp, ctr;
                     double minv, maxv;
-                    cv::minMaxLoc(interest, &minv, &maxv, &minp, &maxp);                
+                    cv::minMaxLoc(interest, &minv, &maxv, &minp, &maxp);                    
                     if(maxv <= MIN_BALL_RADIUS) break;
                     ctr = cv::Point(r.tl().x + maxp.x, r.tl().y + maxp.y);
                     //-- remove visited candidate               
                     cv::circle(dt, ctr, maxv, cv::Scalar(0), cv::FILLED);
                     max_point.push_back(ctr);        		
                     max_val.push_back(maxv);
-                    
                 }
             }
-        }               
+        }
         return std::make_tuple(max_val, max_point, res_dt);
     }
 private:
