@@ -59,6 +59,7 @@ private:
     cv::Mat color_table_;
 
     static constexpr auto MIN_FIELD_PART_CONTOUR_AREA{800.};
+    static constexpr auto MIN_MAYBE_BALL_CONTOUR_AREA{100.};
 };
 
 template <typename Search, typename Descriptor, typename Classifier,
@@ -137,13 +138,55 @@ auto BallDetector<Search, Descriptor, Classifier, width, height>::execute(const 
     
     cv::Mat input_hsv;
     cv::Mat field_color;
+    cv::Mat ball_color;
     cv::Mat field_contour;
+    cv::Mat cropped_invert_field;
     cv::cvtColor(_in, input_hsv, cv::COLOR_BGR2HSV);
     
     field_color = segmentField(input_hsv);
-    
-    cropField(field_color, &field_contour);    
+    ball_color = segmentBall(input_hsv);
+    cropField(field_color, &field_contour);
 
+    cv::multiply(~field_color, field_contour, cropped_invert_field);
+    std::vector<std::vector<cv::Point>> contours;
+    cv::findContours(ball_color, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
+    cv::Mat temp_canvas(cv::Mat::zeros(height, width, CV_8UC1));
+	for(std::size_t i(0); i < contours.size(); i++){
+		if(cv::contourArea(contours[i]) > MIN_MAYBE_BALL_CONTOUR_AREA){
+			std::vector<std::vector<cv::Point>> temp(1);
+			cv::convexHull(contours[i], temp[0]);
+			cv::drawContours(temp_canvas, temp, 0, cv::Scalar(255), cv::FILLED);
+		}
+	}	
+    cv::Mat temp(cropped_invert_field.clone());
+    // std::vector<std::vector<cv::Point>> contours;
+    contours.clear();
+    std::vector<cv::Vec4i> hierarchy;
+    cv::findContours(cropped_invert_field, contours, hierarchy,
+                        cv::RETR_CCOMP, cv::CHAIN_APPROX_NONE);    
+    std::vector<double> contour_area;
+    for(std::size_t i(0); i < contours.size(); i++){
+    	contour_area.emplace_back(cv::contourArea(contours[i]));
+        if(contour_area[i] > MIN_MAYBE_BALL_CONTOUR_AREA){       	
+        	if(hierarchy[i][3] == -1){
+        		cv::drawContours(temp, contours, i, cv::Scalar(255), cv::FILLED);
+        	}
+        }
+    }  
+
+    for(std::size_t i(0); i < contours.size(); i++){    	
+        if(contour_area[i] > 500.){ //-- magic number   	
+        	if(hierarchy[i][3] > -1){
+        		cv::drawContours(temp, contours, i, cv::Scalar(0), cv::FILLED);
+        	}
+        }
+    }
+    cv::Mat ball_candidate_contours;
+    cv::bitwise_and(temp, temp_canvas, ball_candidate_contours);
+
+    
+
+    cv::imshow("[alfarobi_v8][BallDetector] Ball candidate contours", ball_candidate_contours);
     cv::imshow("[alfarobi_v8][BallDetector] Input as HSV", input_hsv);
 
     auto t2 = boost::chrono::high_resolution_clock::now();
