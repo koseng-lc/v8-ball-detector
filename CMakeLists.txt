@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(v8_ball_detector)
 
+add_compile_options(-std=c++1z)
+
 find_package(OpenCV REQUIRED)
 find_package(Boost REQUIRED COMPONENTS
     system

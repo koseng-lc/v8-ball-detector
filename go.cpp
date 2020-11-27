@@ -1,5 +1,5 @@
 /**
-    @author koseng (Lintang)
+*   @author koseng (Lintang)
 */
 
 #include <boost/thread.hpp>
@@ -13,14 +13,14 @@
 
 int main(int argc, char** argv){
 
-    alfarobi_v8::DistanceWeighting dw;
+    alfarobi_v8::DistanceWeightingSearch dws;
     alfarobi_v8::LBP lbp;
     alfarobi_v8::ClassifierWrapper cw;
 
     alfarobi_v8::BallDetector<
-        alfarobi_v8::DistanceWeighting,
+        alfarobi_v8::DistanceWeightingSearch,
         alfarobi_v8::LBP,
-        alfarobi_v8::ClassifierWrapper> bd(&dw, &lbp, &cw);
+        alfarobi_v8::ClassifierWrapper> bd(&dws, &lbp, &cw);
     bd.loadConfig("../data/v8_ball_detector_config.yaml");
 
     cv::VideoCapture vc("../video_test/video9.avi");    

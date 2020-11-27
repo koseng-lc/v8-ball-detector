@@ -184,7 +184,7 @@ auto BallDetector<Search, Descriptor, Classifier, width, height>::execute(const 
     cv::Mat ball_candidate_contours;
     cv::bitwise_and(temp, temp_canvas, ball_candidate_contours);
 
-    
+    auto [max_val, max_point] = search_->search(ball_candidate_contours);
 
     cv::imshow("[alfarobi_v8][BallDetector] Ball candidate contours", ball_candidate_contours);
     cv::imshow("[alfarobi_v8][BallDetector] Input as HSV", input_hsv);
