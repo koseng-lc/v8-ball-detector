@@ -47,6 +47,7 @@ public:
 
     auto search(const cv::Mat& in){
         cv::Mat dt( distanceWeighting(in) );
+        cv::Mat res_dt( dt.clone() );
         std::vector<std::vector<cv::Point>> contours;
         cv:findContours(in, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
 
@@ -64,7 +65,7 @@ public:
                 cv::Point minp, maxp, ctr;
                 double minv, maxv;
                 cv::minMaxLoc(interest, &minv, &maxv, &minp, &maxp);                       
-                if(maxv <= MIN_BALL_RADIUS)continue;
+                if(maxv <= MIN_BALL_RADIUS) continue;
                 ctr = cv::Point(r.tl().x + maxp.x, r.tl().y + maxp.y);
                 //-- remove visited candidate
                 cv::circle(dt, ctr, maxv, cv::Scalar(0), cv::FILLED);
@@ -76,7 +77,7 @@ public:
                     cv::Point minp, maxp, ctr;
                     double minv, maxv;
                     cv::minMaxLoc(interest, &minv, &maxv, &minp, &maxp);                
-                    if(maxv <= MIN_BALL_RADIUS)break;
+                    if(maxv <= MIN_BALL_RADIUS) break;
                     ctr = cv::Point(r.tl().x + maxp.x, r.tl().y + maxp.y);
                     //-- remove visited candidate               
                     cv::circle(dt, ctr, maxv, cv::Scalar(0), cv::FILLED);
@@ -86,7 +87,7 @@ public:
                 }
             }
         }               
-        return std::make_tuple(max_val, max_point);
+        return std::make_tuple(max_val, max_point, res_dt);
     }
 private:
     static constexpr auto MIN_BALL_RADIUS{5.};

@@ -15,7 +15,7 @@ int main(int argc, char** argv){
 
     alfarobi_v8::DistanceWeightingSearch dws;
     alfarobi_v8::LBP lbp;
-    alfarobi_v8::ClassifierWrapper cw;
+    alfarobi_v8::ClassifierWrapper cw("../data/bola_lbp_standar.xml");
 
     alfarobi_v8::BallDetector<
         alfarobi_v8::DistanceWeightingSearch,
