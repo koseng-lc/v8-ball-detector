@@ -31,15 +31,29 @@ struct MouseStuff{
     cv::Point coor2;
 }mouse_stuff;
 
-auto loadTable(){
-    cv::FileStorage fs("../data/color_table.xml", cv::FileStorage::READ);    
+auto loadConfig(){
+    cv::FileStorage fs("../data/v8_ball_detector_config.yaml", cv::FileStorage::READ);    
     fs["color_table"] >> color_table;
+    fs["min_val"] >> ball_param.min_val;
+    fs["max_val"] >> ball_param.max_val;
+    fs["min_sat"] >> ball_param.min_sat;
+    fs["max_sat"] >> ball_param.max_sat;
     fs.release();
+}
+
+auto setupTrackbar(){
+    std::string param_winname("[alfarobi_v8][Calibration] Parameters config");
+    cv::namedWindow(param_winname, cv::WINDOW_NORMAL);
+
+    cv::createTrackbar("Ball Min. Val", param_winname, &ball_param.min_val, 255);
+    cv::createTrackbar("Ball Max. Val", param_winname, &ball_param.max_val, 255);
+    cv::createTrackbar("Ball Min. Sat", param_winname, &ball_param.min_sat, 255);
+    cv::createTrackbar("Ball Max. Sat", param_winname, &ball_param.max_sat, 255);
 }
 
 auto modifyTable(const cv::Mat& data, int flag){
     cv::Mat temp;
-    cv::FileStorage fs("../data/color_table.xml", cv::FileStorage::READ);    
+    cv::FileStorage fs("../data/v8_ball_detector_config.yaml", cv::FileStorage::READ);    
     fs["color_table"] >> temp;
     fs.release();
 
@@ -56,8 +70,12 @@ auto modifyTable(const cv::Mat& data, int flag){
         }
     }
 
-    fs.open("../data/color_table.xml", cv::FileStorage::WRITE);
+    fs.open("../data/v8_ball_detector_config.yaml", cv::FileStorage::WRITE);
     fs << "color_table" << temp;
+    fs << "min_val" << ball_param.min_val;
+    fs << "max_val" << ball_param.max_val;
+    fs << "min_sat" << ball_param.min_sat;
+    fs << "max_sat" << ball_param.max_sat;
     fs.release();    
 }
 
@@ -191,7 +209,8 @@ auto segmentBall(const cv::Mat& _in_hsv){
 }
 
 int main(int argc, char** argv){
-    loadTable();
+    loadConfig();
+    setupTrackbar();
     cv::VideoCapture vc("../video_test/video9.avi");
     cv::Mat input;
     cv::Mat input_hsv;
