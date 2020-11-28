@@ -29,10 +29,9 @@ int main(int argc, char** argv){
                   alfarobi_v8::default_width, CV_8UC3);    
     while(1){
         vc >> input;
-        cv::flip(input, input, -1);
+        // cv::flip(input, input, -1);
         bd.execute(input);
         if(cv::waitKey(0) == 27)break;
-        boost::this_thread::sleep_for(boost::chrono::milliseconds(10));
     }
 
     return .0;
