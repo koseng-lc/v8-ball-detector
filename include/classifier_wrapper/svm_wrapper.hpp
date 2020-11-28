@@ -7,9 +7,9 @@
 
 namespace alfarobi_v8{
 
-class ClassifierWrapper{
+class SVMWrapper{
 public:
-    ClassifierWrapper(std::string&& _weight_path){
+    SVMWrapper(std::string&& _weight_path){
         svm_ = cv::ml::SVM::create();
         svm_ = cv::ml::SVM::load(_weight_path);
     }

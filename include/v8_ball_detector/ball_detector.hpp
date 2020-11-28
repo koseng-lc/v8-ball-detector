@@ -163,7 +163,7 @@ auto BallDetector<Search, Descriptor, Classifier, width, height>::calcVariance(c
     for(int i(-radius*in.cols); i <= radius*in.cols; i += in.cols){
         for(int j(-radius); j <= radius; j++){
             int idx = p.y*in.cols + p.x + i + j;
-            int temp = in.at<default_scalar_t>(idx) - mean;
+            int temp = in.at<float>(idx) - mean;
             var += temp*temp;
         }
     }
@@ -344,7 +344,7 @@ auto BallDetector<Search, Descriptor, Classifier, width, height>::execute(const 
     //-- threshold
     auto min_white_percentage(.3);
     auto max_white_percentage(.85);
-    auto min_var(30.); 
+    auto min_var(2.); 
     auto score_limit(.75);
     //-- optimal
     auto opt_score(.0);
@@ -361,7 +361,7 @@ auto BallDetector<Search, Descriptor, Classifier, width, height>::execute(const 
     cv::Point ball_pos;
     for(std::size_t i(0); i < max_val.size(); i++){    	
         //-- add some scale to get a bit more bigger
-        auto scale = (max_val[i] < 50.) ? 1.2 : 1.;
+        auto scale(1.2);
         int pos_x = max_point[i].x - (int)(max_val[i]*scale);
         int pos_y = max_point[i].y - (int)(max_val[i]*scale);
 
@@ -384,16 +384,19 @@ auto BallDetector<Search, Descriptor, Classifier, width, height>::execute(const 
         cv::Vec4f circle_param(-1.0f, -1.0f , std::numeric_limits<float>::max(), std::numeric_limits<float>::max());
         auto opt_diff_to_weighting(std::numeric_limits<default_scalar_t>::max());
         //-- Decision Tree
+        
         if(white_percentage >= min_white_percentage
-            && white_percentage <= max_white_percentage){            
+            && white_percentage <= max_white_percentage){        
             variance = calcVariance(dt, max_point[i]);
             if(variance > min_var){
+
                 std::vector<cv::Mat> sub_frame1(2);
                 std::vector<cv::Mat> sub_frame2(2);
                 int sub_mode=0;
                 sub_frame1[0] = cv::Mat(roi, cv::Rect(0, 0, roi_rect.width >> 1, roi_rect.height));
                 sub_frame1[1] = cv::Mat(roi, cv::Rect(roi_rect.width >> 1, 0, roi_rect.width >> 1, roi_rect.height));
                 //    cv::line(output_view,cv::Point(tl_pt.x+roi_rect.width/2,tl_pt.y),cv::Point(tl_pt.x+roi_rect.width/2,tl_pt.y+roi_rect.height),cv::Scalar(255,0,0),2);
+
                 cv::Mat sub_sample1[2];
                 sub_sample1[0] = cv::Mat::zeros(sub_frame1[0].size(), CV_8UC1);
                 sub_sample1[1] = cv::Mat::zeros(sub_frame1[1].size(), CV_8UC1);                
@@ -439,7 +442,6 @@ auto BallDetector<Search, Descriptor, Classifier, width, height>::execute(const 
                         opt_diff_to_weighting = diff_to_weighting;
                     }                        
                 }                                  
-                //--
 
                 max_point[i] = cv::Point(circle_param[0], circle_param[1]);
                 if(max_point[i].x < 0 & max_point[i].y < 0)continue;
@@ -462,8 +464,7 @@ auto BallDetector<Search, Descriptor, Classifier, width, height>::execute(const 
                 if(pos_y + d2 >= height) d2 = height - pos_y;
 
                 roi_rect = cv::Rect(pos_x, pos_y, d1, d2);              
-                roi = cv::Mat(ball_color, roi_rect);                
-                //--       
+                roi = cv::Mat(ball_color, roi_rect);   
 
                 auto pass(true);
                 if(!(hist_reference_[0].empty()
@@ -493,8 +494,6 @@ auto BallDetector<Search, Descriptor, Classifier, width, height>::execute(const 
                     int pos_x_2 = max_point[i].x - (int)(circle_param[2]*scale);
                     int pos_y_2 = max_point[i].y - (int)(circle_param[2]*scale);
 
-                    // pos_y_2 -= circle_param[2] * .3;
-
                     if(pos_x_2 < 0) pos_x_2 = 0;
                     if(pos_y_2 < 0) pos_y_2 = 0;
 
@@ -505,16 +504,17 @@ auto BallDetector<Search, Descriptor, Classifier, width, height>::execute(const 
                     if(pos_y_2 + d2_2 >= ball_color.rows) d2_2 = ball_color.rows - pos_y_2;
 
                     int d = std::min(d1_2, d2_2);
-                    cv::Mat roi_h(field_color, cv::Rect(pos_x_2, pos_y_2, d, d));
+                    cv::Rect maybe_ball_roi(pos_x_2, pos_y_2, d, d);
+                    cv::Mat roi_h(field_color, maybe_ball_roi);
                     auto green_weight( cv::countNonZero(roi_h) );
                     if(green_weight > .0){
-	                    cv::Mat roi_frame(_in, cv::Rect(pos_x_2, pos_y_2, d, d));
+	                    cv::Mat roi_frame(_in, maybe_ball_roi);
 	                    cv::Mat roi_gray(roi_frame.clone());
 	                    cv::cvtColor(roi_gray, roi_gray, cv::COLOR_BGR2GRAY);               
 	                                
-	                    std::vector<default_scalar_t> desc;
+	                    std::vector<float> desc;
 
-                        cv::resize(roi_gray, roi_gray, cv::Size(64, 64));                        
+                        cv::resize(roi_gray, roi_gray, cv::Size(32, 32));                        
                         cv::Mat dummy(cv::Mat::zeros(roi_gray.size(), CV_8UC1));
 
                         desc_->extract(roi_gray, desc, dummy, 16);
@@ -525,15 +525,10 @@ auto BallDetector<Search, Descriptor, Classifier, width, height>::execute(const 
 
 	                    if(label > 0.0){                    	
 
-	                    	ball_rect = cv::Rect(pos_x_2, pos_y_2, d, d);  
-
+	                    	ball_rect = maybe_ball_roi;  
 	                        idx = i;
-
 	                        opt_score = score_hist;                        
-
                             max_val[i] = circle_param[2];
-	                        	                        
-                            cv::rectangle(output, ball_rect, cv::Scalar(255, 0, 255), 2);
 	                    }  
 	                }                                                     
                 }            
@@ -551,7 +546,7 @@ auto BallDetector<Search, Descriptor, Classifier, width, height>::execute(const 
     if(idx != -1){
 	    ball_pos = max_point[idx];
 	    // last_pos = pos;
-	    cv::circle(output, max_point[idx], (int)max_val[idx], cv::Scalar(0, 255, 0), 2);
+        cv::rectangle(output, ball_rect, cv::Scalar(255, 0, 255), 2);
 	}
 
     cv::imshow("[alfarobi_v8][BallDetector] Ball candidate contours", ball_candidate_contours);

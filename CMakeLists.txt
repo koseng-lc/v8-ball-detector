@@ -23,7 +23,8 @@ set_target_properties(${PROJECT_NAME}_lib PROPERTIES LINKER_LANGUAGE CXX)
 add_library(stuff_lib
     include/distance_weighting/distance_weighting.hpp
     include/lbp/lbp.hpp
-    include/classifier_wrapper/classifier_wrapper.hpp
+    include/classifier_wrapper/svm_wrapper.hpp
+    include/classifier_wrapper/adaboost_wrapper.hpp
     include/fitting/fitcircle.cpp
 )
 set_target_properties(stuff_lib PROPERTIES LINKER_LANGUAGE CXX)

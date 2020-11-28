@@ -19,7 +19,7 @@ private:
         return min_binary;
     }
 
-    auto lbp_core(const cv::Mat& input, std::vector<double> &grid_hist, cv::Rect grid, cv::Mat& visual){
+    auto lbp_core(const cv::Mat& input, std::vector<float> &grid_hist, cv::Rect grid, cv::Mat& visual){
         int rows(input.rows);
         int cols(input.cols);
         const uchar* input_data = input.data;
@@ -46,14 +46,14 @@ private:
     }
 
 public:
-    auto extract(const cv::Mat& input, std::vector<double>& desc, cv::Mat& visual, int grid_size){
+    auto extract(const cv::Mat& input, std::vector<float>& desc, cv::Mat& visual, int grid_size){
         int rows = input.rows;
         int cols = input.cols;
 
         while(1){
             static int pos_x = 0;
             static int pos_y = 0;
-            std::vector<double> vtemp(256);
+            std::vector<float> vtemp(256);
             cv::Rect sub_grid(pos_x, pos_y, grid_size, grid_size);        
             lbp_core(input, vtemp, sub_grid, visual);
             //-- normalizing by considering it as if a histogram        
