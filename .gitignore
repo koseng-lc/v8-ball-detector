@@ -1,4 +1,5 @@
 video_test/
 build/
+data/bola_lbp_standar.xml
 vision.cpp
 vision.h

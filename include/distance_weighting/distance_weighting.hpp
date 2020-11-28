@@ -49,8 +49,8 @@ public:
     }
 
     auto search(const cv::Mat& in){
-        cv::Mat dt( distanceWeighting(in) );
-        cv::Mat res_dt( dt.clone() );
+        auto dt( distanceWeighting(in) );
+        auto res_dt( dt.clone() );
         std::vector<std::vector<cv::Point>> contours;
         cv:findContours(in, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
 
